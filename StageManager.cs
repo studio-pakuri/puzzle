@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class StageManager : MonoBehaviour
 {
+    int rows;
+    int columns;
     float tileSize;
     Vector2 centerPosition;
     Dictionary<GameObject, Vector2Int> moveObjPositionOnStage = new();
@@ -24,22 +26,19 @@ public class StageManager : MonoBehaviour
         BLOCK_ON_POINT,
         PLAYER_ON_POINT
     }
-    StageType[,] stageTable;
 
     public void LoadStageData()
     {
         string[] lines = stageFile.text.Split(new[] { '\n', '\r' });
-        int rows = lines.Length;
-        int columns = lines[0].Split(new[] { ',' }).Length;
+        rows = lines.Length;
+        columns = lines[0].Split(new[] { ',' }).Length;
         Dictionary<TileVec, FloorLayer.FloorLayerTile> tiles = new();
-        stageTable = new StageType[rows, columns];
         for (int x = 0; x < rows; x++)
         {
             string[] values = lines[x].Split(new[] { ',' });
             for (int y = 0; y < columns; y++)
             {
                 StageType stageType = (StageType)int.Parse(values[y]);
-                stageTable[x, y] = stageType;
                 TileVec pos = new TileVec(y, x);
                 tiles[pos] = stageType switch
                 {
@@ -64,11 +63,11 @@ public class StageManager : MonoBehaviour
     public void CreateStage()
     {
         tileSize = prefabs[0].GetComponent<SpriteRenderer>().bounds.size.x;
-        centerPosition.x = stageTable.GetLength(0) / 2 * tileSize;
-        centerPosition.y = stageTable.GetLength(1) / 2 * tileSize;
-        for (int x = 0; x < stageTable.GetLength(0); x++)
+        centerPosition.x = rows / 2 * tileSize;
+        centerPosition.y = columns / 2 * tileSize;
+        for (int x = 0; x < rows; x++)
         {
-            for (int y = 0; y < stageTable.GetLength(1); y++)
+            for (int y = 0; y < columns; y++)
             {
                 Vector2Int positionInt = new(y, x);
                 Vector2 position = GetScreenPositionFromTileTable(positionInt);
@@ -153,40 +152,12 @@ public class StageManager : MonoBehaviour
         targetBlock.transform.position = GetScreenPositionFromTileTable(nextPosition);
 
         moveObjPositionOnStage[targetBlock] = nextPosition;
-        if (stageTable[nextPosition.y, nextPosition.x] == StageType.BLOCK_POINT)
-        {
-            stageTable[nextPosition.y, nextPosition.x] = StageType.BLOCK_ON_POINT;
-        }
-        else
-        {
-            stageTable[nextPosition.y, nextPosition.x] = stageType;
-        }
     }
 
     public void UpdateStageTableForPlayer(Vector2Int nowPosition, Vector2Int nextPosition)
     {
         boardState.RemoveObject(TileVecHelper.vector2IntToTileVec(nowPosition), out _);
         boardState.SetObject(new BoardObject(BoardObjectType.PLAYER), TileVecHelper.vector2IntToTileVec(nextPosition));
-        if (
-            stageTable[nextPosition.y, nextPosition.x] == StageType.BLOCK_ON_POINT
-            || stageTable[nextPosition.y, nextPosition.x] == StageType.BLOCK_POINT
-            )
-        {
-            stageTable[nextPosition.y, nextPosition.x] = StageType.PLAYER_ON_POINT;
-        }
-        else
-        {
-            stageTable[nextPosition.y, nextPosition.x] = StageType.PLAYER;
-        }
-
-        if (stageTable[nowPosition.y, nowPosition.x] == StageType.PLAYER_ON_POINT)
-        {
-            stageTable[nowPosition.y, nowPosition.x] = StageType.BLOCK_POINT;
-        }
-        else
-        {
-            stageTable[nowPosition.y, nowPosition.x] = StageType.GROUND;
-        }
     }
     public bool IsAllClear()
     {
