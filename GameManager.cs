@@ -11,10 +11,10 @@ public class GameManager : MonoBehaviour
     {
         stageManager.LoadStageData();
         stageManager.CreateStage();
-        playerManager = stageManager.GetPlayerManager();
     }
     void Update()
     {
+        return;
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
             PlayerMove(Vector2Int.up);

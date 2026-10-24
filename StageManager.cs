@@ -14,7 +14,7 @@ public class StageManager : MonoBehaviour
     Stack<BoardState> history = new();
     PlayerManager playerManager;
     [SerializeField] TextAsset stageFile;
-    [SerializeField] GameObject[] prefabs;
+    [SerializeField] BoardRenderer boardRenderer;
 
     public enum StageType
     {
@@ -60,48 +60,9 @@ public class StageManager : MonoBehaviour
 
     public void CreateStage()
     {
-        tileSize = prefabs[0].GetComponent<SpriteRenderer>().bounds.size.x;
-        centerPosition.x = rows / 2 * tileSize;
-        centerPosition.y = columns / 2 * tileSize;
-        for (int x = 0; x < rows; x++)
-        {
-            for (int y = 0; y < columns; y++)
-            {
-                Vector2Int positionInt = new(y, x);
-                Vector2 position = GetScreenPositionFromTileTable(positionInt);
-                TileVec tileVec = new(y, x);
-                FloorLayer.FloorLayerTile? tile = floorLayer.GetTile(tileVec);
-                if (tile is not null){
-                    GameObject groundObj = Instantiate(prefabs[tile switch
-                    {
-                        FloorLayer.FloorLayerTile.WALL => (int)StageType.WALL,
-                        FloorLayer.FloorLayerTile.FLOOR => (int)StageType.GROUND,
-                        FloorLayer.FloorLayerTile.POINT => (int)StageType.BLOCK_POINT
-                    }]);
-                    groundObj.transform.position = position;
-                }
-                if (boardState.HasObject(tileVec))
-                {
-                    BoardObject boardObject = boardState.GetObject(tileVec);
-                    StageType stageType = boardObject.type switch
-                    {
-                        BoardObjectType.PLAYER => StageType.PLAYER,
-                        BoardObjectType.BLOCK => StageType.BLOCK
-                    };
-                    GameObject obj = Instantiate(prefabs[(int)stageType]);
-                    obj.transform.position = position;
-                    if (stageType == StageType.PLAYER)
-                    {
-                        playerManager = obj.GetComponent<PlayerManager>();
-                        moveObjPositionOnStage.Add(obj, positionInt);
-                    }
-                    else if (stageType == StageType.BLOCK)
-                    {
-                        moveObjPositionOnStage.Add(obj, positionInt);
-                    }
-                }
-            }
-        }
+        boardRenderer.rows = rows;
+        boardRenderer.columns = columns;
+        boardRenderer.CreateStage(floorLayer, boardState);
     }
     public PlayerManager GetPlayerManager()
     {
