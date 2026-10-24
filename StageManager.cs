@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Burst.Intrinsics;
 using UnityEngine;
 
 public class StageManager : MonoBehaviour
@@ -134,5 +135,24 @@ public class StageManager : MonoBehaviour
             }
         }
         return blockCount == clearCount;
+    }
+    
+
+    void PlayerMove(TileDirection direction)
+    {
+        TileVec? playerPos = null;
+        foreach (var (tileVec, boardObject) in boardState)
+        {
+            if (boardObject.type == BoardObjectType.PLAYER)
+            {
+                playerPos = tileVec;
+                break;
+            }
+        }
+        if (playerPos is not null)
+        {
+            TileVec pos = (TileVec)playerPos;
+            if (IsWall(pos + (TileVec)direction)) return;
+        }
     }
 }

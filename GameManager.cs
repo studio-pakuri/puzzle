@@ -14,40 +14,23 @@ public class GameManager : MonoBehaviour
     }
     void Update()
     {
-        return;
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
-            PlayerMove(Vector2Int.up);
+            PlayerMove();
         }
         if (Input.GetKeyDown(KeyCode.DownArrow))
         {
-            PlayerMove(Vector2Int.down);
+            PlayerMove();
         }
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
-            PlayerMove(Vector2Int.left);
+            PlayerMove();
         }
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
-            PlayerMove(Vector2Int.right);
+            PlayerMove();
         }
         CheckClear();
-    }
-
-    void PlayerMove(Vector2Int offset)
-    {
-        Vector2Int currentPlayerPosition = stageManager.GetObjPosition(playerManager.gameObject);
-        Vector2Int nextPlayerPosition = currentPlayerPosition - offset;
-        if (stageManager.IsWall(nextPlayerPosition)) return;
-        if (stageManager.IsBlock(nextPlayerPosition))
-        {
-            Vector2Int nextBlockPosition = nextPlayerPosition - offset;
-            if (stageManager.IsWall(nextBlockPosition) || stageManager.IsBlock(nextBlockPosition)) return;
-            stageManager.UpdateObjectPosition(nextPlayerPosition, nextBlockPosition, StageManager.StageType.BLOCK);
-        }
-        stageManager.UpdateStageTableForPlayer(currentPlayerPosition, nextPlayerPosition);
-        playerManager.Move(stageManager.GetScreenPositionFromTileTable(nextPlayerPosition));
-        stageManager.SetObjPositionOnStage(playerManager.gameObject, nextPlayerPosition);
     }
 
     void CheckClear()
