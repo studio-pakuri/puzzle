@@ -22,9 +22,7 @@ public class StageManager : MonoBehaviour
         GROUND,
         BLOCK_POINT,
         BLOCK,
-        PLAYER,
-        BLOCK_ON_POINT,
-        PLAYER_ON_POINT
+        PLAYER
     }
 
     public void LoadStageData()

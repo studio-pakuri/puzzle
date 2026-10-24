@@ -42,10 +42,10 @@ public class MutableBoardState: IBoardView
         objects.Clear();
     }
 
-    public void Overwrite(BoardState boardState)
+    public void Overwrite(IBoardView boardView)
     {
         objects.Clear();
-        foreach (var (pos, boardObject) in boardState)
+        foreach (var (pos, boardObject) in boardView)
         {
             objects[pos] = boardObject;
         }
