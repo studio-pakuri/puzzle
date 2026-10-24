@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class BoardState: IEnumerable<KeyValuePair<TileVec, BoardObject>>
+public class BoardState: IBoardView
 {
     readonly Dictionary<TileVec, BoardObject> objects;
     public BoardState(IEnumerable<KeyValuePair<TileVec, BoardObject>> keyValuePairs)

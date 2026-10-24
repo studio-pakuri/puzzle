@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 
-public class MutableBoardState: IEnumerable<KeyValuePair<TileVec, BoardObject>>
+public class MutableBoardState: IBoardView
 {
     readonly Dictionary<TileVec, BoardObject> objects;
 
