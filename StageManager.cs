@@ -1,20 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Burst.Intrinsics;
 using UnityEngine;
 
 public class StageManager : MonoBehaviour
 {
     int rows;
     int columns;
-    float tileSize;
-    Vector2 centerPosition;
     Dictionary<GameObject, Vector2Int> moveObjPositionOnStage = new();
     FloorLayer floorLayer;
     MutableBoardState boardState = new();
     Stack<BoardState> history = new();
-    PlayerManager playerManager;
     [SerializeField] TextAsset stageFile;
-    [SerializeField] GameObject[] prefabs;
+    [SerializeField] BoardRenderer boardRenderer;
+    TileVec? playerPosCache;
 
     public enum StageType
     {
@@ -60,102 +59,18 @@ public class StageManager : MonoBehaviour
 
     public void CreateStage()
     {
-        tileSize = prefabs[0].GetComponent<SpriteRenderer>().bounds.size.x;
-        centerPosition.x = rows / 2 * tileSize;
-        centerPosition.y = columns / 2 * tileSize;
-        for (int x = 0; x < rows; x++)
-        {
-            for (int y = 0; y < columns; y++)
-            {
-                Vector2Int positionInt = new(y, x);
-                Vector2 position = GetScreenPositionFromTileTable(positionInt);
-                TileVec tileVec = new(y, x);
-                FloorLayer.FloorLayerTile? tile = floorLayer.GetTile(tileVec);
-                if (tile is not null){
-                    GameObject groundObj = Instantiate(prefabs[tile switch
-                    {
-                        FloorLayer.FloorLayerTile.WALL => (int)StageType.WALL,
-                        FloorLayer.FloorLayerTile.FLOOR => (int)StageType.GROUND,
-                        FloorLayer.FloorLayerTile.POINT => (int)StageType.BLOCK_POINT
-                    }]);
-                    groundObj.transform.position = position;
-                }
-                if (boardState.HasObject(tileVec))
-                {
-                    BoardObject boardObject = boardState.GetObject(tileVec);
-                    StageType stageType = boardObject.type switch
-                    {
-                        BoardObjectType.PLAYER => StageType.PLAYER,
-                        BoardObjectType.BLOCK => StageType.BLOCK
-                    };
-                    GameObject obj = Instantiate(prefabs[(int)stageType]);
-                    obj.transform.position = position;
-                    if (stageType == StageType.PLAYER)
-                    {
-                        playerManager = obj.GetComponent<PlayerManager>();
-                        moveObjPositionOnStage.Add(obj, positionInt);
-                    }
-                    else if (stageType == StageType.BLOCK)
-                    {
-                        moveObjPositionOnStage.Add(obj, positionInt);
-                    }
-                }
-            }
-        }
+        boardRenderer.rows = rows;
+        boardRenderer.columns = columns;
+        boardRenderer.CreateStage(floorLayer, boardState);
     }
-    public PlayerManager GetPlayerManager()
+    public bool IsWall(TileVec position)
     {
-        return playerManager;
+        return floorLayer.GetTile(position) == FloorLayer.FloorLayerTile.WALL;
     }
-    public Vector2 GetScreenPositionFromTileTable(Vector2Int position)
+    public bool IsBlock(TileVec position)
     {
-        return new Vector2(position.x * tileSize - centerPosition.x, -position.y * tileSize + centerPosition.y);
-    }
-    public void SetObjPositionOnStage(GameObject obj, Vector2Int pos)
-    {
-        moveObjPositionOnStage[obj] = pos;
-    }
-    public Vector2Int GetObjPosition(GameObject obj)
-    {
-        return moveObjPositionOnStage[obj];
-    }
-    public bool IsWall(Vector2Int position)
-    {
-        return floorLayer.GetTile(TileVecHelper.vector2IntToTileVec(position)) == FloorLayer.FloorLayerTile.WALL;
-    }
-    public bool IsBlock(Vector2Int position)
-    {
-        TileVec tileVec = TileVecHelper.vector2IntToTileVec(position);
-        if (!boardState.HasObject(tileVec)) return false;
-        return boardState.GetObject(tileVec).type == BoardObjectType.BLOCK;
-    }
-    public GameObject GetObjectByPosition(Vector2 position)
-    {
-        foreach (var item in moveObjPositionOnStage)
-        {
-            if (item.Value == position)
-            {
-                return item.Key;
-            }
-        }
-        return null;
-    }
-    public void UpdateObjectPosition(Vector2Int nowPosition, Vector2Int nextPosition, StageType stageType)
-    {
-        boardState.MoveObject(
-            TileVecHelper.vector2IntToTileVec(nowPosition),
-            TileVecHelper.vector2IntToTileVec(nextPosition)
-            );
-        GameObject targetBlock = GetObjectByPosition(nowPosition);
-        targetBlock.transform.position = GetScreenPositionFromTileTable(nextPosition);
-
-        moveObjPositionOnStage[targetBlock] = nextPosition;
-    }
-
-    public void UpdateStageTableForPlayer(Vector2Int nowPosition, Vector2Int nextPosition)
-    {
-        boardState.RemoveObject(TileVecHelper.vector2IntToTileVec(nowPosition), out _);
-        boardState.SetObject(new BoardObject(BoardObjectType.PLAYER), TileVecHelper.vector2IntToTileVec(nextPosition));
+        if (!boardState.HasObject(position)) return false;
+        return boardState.GetObject(position).type == BoardObjectType.BLOCK;
     }
     public bool IsAllClear()
     {
@@ -173,5 +88,60 @@ public class StageManager : MonoBehaviour
             }
         }
         return blockCount == clearCount;
+    }
+    
+    public TileVec? GetPlayerPos()
+    {
+        if (playerPosCache is not null)
+        {
+            TileVec cache = (TileVec)playerPosCache;
+            
+            if (boardState.TryGetObject(cache, out BoardObject boardObject))
+            {
+                if (boardObject.type == BoardObjectType.PLAYER) return cache;
+            }
+        }
+        TileVec? playerPos = null;
+        foreach (var (tileVec, boardObject) in boardState)
+        {
+            if (boardObject.type == BoardObjectType.PLAYER)
+            {
+                playerPos = tileVec;
+                break;
+            }
+        }
+        playerPosCache = playerPos;
+        return playerPos;
+    }
+    public void Undo()
+    {
+        if (history.TryPop(out BoardState result))
+        {
+            boardState.Overwrite(result);
+            boardRenderer.UpdateStage(boardState);
+        }
+    }
+    public bool PlayerMove(TileDirection direction)
+    {
+        TileVec? playerPos = GetPlayerPos();
+        if (playerPos is not null)
+        {
+            TileVec pos = (TileVec)playerPos;
+            BoardState memento = boardState.ToImmutable();
+            TileVec nextPlayerPos = pos - direction;
+            if (IsWall(nextPlayerPos)) return false;
+            if (IsBlock(nextPlayerPos))
+            {
+                TileVec nextBlockPos = nextPlayerPos - direction;
+                if (IsWall(nextBlockPos)) return false;
+                boardState.MoveObject(nextPlayerPos, nextBlockPos);
+            }
+            playerPosCache = nextPlayerPos;
+            boardState.MoveObject(pos, nextPlayerPos);
+            boardRenderer.UpdateStage(boardState);
+            history.Push(memento);
+            return true;
+        }
+        return false;
     }
 }

@@ -5,49 +5,35 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    PlayerManager playerManager;
     [SerializeField] StageManager stageManager;
     void Start()
     {
         stageManager.LoadStageData();
         stageManager.CreateStage();
-        playerManager = stageManager.GetPlayerManager();
     }
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
-            PlayerMove(Vector2Int.up);
+            stageManager.PlayerMove(TileDirection.UP);
         }
         if (Input.GetKeyDown(KeyCode.DownArrow))
         {
-            PlayerMove(Vector2Int.down);
+            stageManager.PlayerMove(TileDirection.DOWN);
         }
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
-            PlayerMove(Vector2Int.left);
+            stageManager.PlayerMove(TileDirection.LEFT);
         }
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
-            PlayerMove(Vector2Int.right);
+            stageManager.PlayerMove(TileDirection.RIGHT);
+        }
+        if (Input.GetKeyDown(KeyCode.Z))
+        {
+            stageManager.Undo();
         }
         CheckClear();
-    }
-
-    void PlayerMove(Vector2Int offset)
-    {
-        Vector2Int currentPlayerPosition = stageManager.GetObjPosition(playerManager.gameObject);
-        Vector2Int nextPlayerPosition = currentPlayerPosition - offset;
-        if (stageManager.IsWall(nextPlayerPosition)) return;
-        if (stageManager.IsBlock(nextPlayerPosition))
-        {
-            Vector2Int nextBlockPosition = nextPlayerPosition - offset;
-            if (stageManager.IsWall(nextBlockPosition) || stageManager.IsBlock(nextBlockPosition)) return;
-            stageManager.UpdateObjectPosition(nextPlayerPosition, nextBlockPosition, StageManager.StageType.BLOCK);
-        }
-        stageManager.UpdateStageTableForPlayer(currentPlayerPosition, nextPlayerPosition);
-        playerManager.Move(stageManager.GetScreenPositionFromTileTable(nextPlayerPosition));
-        stageManager.SetObjPositionOnStage(playerManager.gameObject, nextPlayerPosition);
     }
 
     void CheckClear()
