@@ -113,23 +113,35 @@ public class StageManager : MonoBehaviour
         playerPosCache = playerPos;
         return playerPos;
     }
-    public void PlayerMove(TileDirection direction)
+    public void Undo()
+    {
+        if (history.TryPop(out BoardState result))
+        {
+            boardState.Overwrite(result);
+            boardRenderer.UpdateStage(boardState);
+        }
+    }
+    public bool PlayerMove(TileDirection direction)
     {
         TileVec? playerPos = GetPlayerPos();
         if (playerPos is not null)
         {
             TileVec pos = (TileVec)playerPos;
+            BoardState memento = boardState.ToImmutable();
             TileVec nextPlayerPos = pos - direction;
-            if (IsWall(nextPlayerPos)) return;
+            if (IsWall(nextPlayerPos)) return false;
             if (IsBlock(nextPlayerPos))
             {
                 TileVec nextBlockPos = nextPlayerPos - direction;
-                if (IsWall(nextBlockPos)) return;
+                if (IsWall(nextBlockPos)) return false;
                 boardState.MoveObject(nextPlayerPos, nextBlockPos);
             }
             playerPosCache = nextPlayerPos;
             boardState.MoveObject(pos, nextPlayerPos);
             boardRenderer.UpdateStage(boardState);
+            history.Push(memento);
+            return true;
         }
+        return false;
     }
 }

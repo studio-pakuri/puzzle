@@ -29,6 +29,10 @@ public class GameManager : MonoBehaviour
         {
             stageManager.PlayerMove(TileDirection.RIGHT);
         }
+        if (Input.GetKeyDown(KeyCode.Z))
+        {
+            stageManager.Undo();
+        }
         CheckClear();
     }
 
