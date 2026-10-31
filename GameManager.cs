@@ -16,19 +16,19 @@ public class GameManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
-            PlayerMove();
+            stageManager.PlayerMove(TileDirection.UP);
         }
         if (Input.GetKeyDown(KeyCode.DownArrow))
         {
-            PlayerMove();
+            stageManager.PlayerMove(TileDirection.DOWN);
         }
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
-            PlayerMove();
+            stageManager.PlayerMove(TileDirection.LEFT);
         }
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
-            PlayerMove();
+            stageManager.PlayerMove(TileDirection.RIGHT);
         }
         CheckClear();
     }

@@ -16,6 +16,7 @@ public class StageManager : MonoBehaviour
     PlayerManager playerManager;
     [SerializeField] TextAsset stageFile;
     [SerializeField] BoardRenderer boardRenderer;
+    TileVec? playerPosCache;
 
     public enum StageType
     {
@@ -81,15 +82,14 @@ public class StageManager : MonoBehaviour
     {
         return moveObjPositionOnStage[obj];
     }
-    public bool IsWall(Vector2Int position)
+    public bool IsWall(TileVec position)
     {
-        return floorLayer.GetTile(TileVecHelper.vector2IntToTileVec(position)) == FloorLayer.FloorLayerTile.WALL;
+        return floorLayer.GetTile(position) == FloorLayer.FloorLayerTile.WALL;
     }
-    public bool IsBlock(Vector2Int position)
+    public bool IsBlock(TileVec position)
     {
-        TileVec tileVec = TileVecHelper.vector2IntToTileVec(position);
-        if (!boardState.HasObject(tileVec)) return false;
-        return boardState.GetObject(tileVec).type == BoardObjectType.BLOCK;
+        if (!boardState.HasObject(position)) return false;
+        return boardState.GetObject(position).type == BoardObjectType.BLOCK;
     }
     public GameObject GetObjectByPosition(Vector2 position)
     {
@@ -137,9 +137,17 @@ public class StageManager : MonoBehaviour
         return blockCount == clearCount;
     }
     
-
-    void PlayerMove(TileDirection direction)
+    public TileVec? GetPlayerPos()
     {
+        if (playerPosCache is not null)
+        {
+            TileVec cache = (TileVec)playerPosCache;
+            
+            if (boardState.TryGetObject(cache, out BoardObject boardObject))
+            {
+                if (boardObject.type == BoardObjectType.PLAYER) return cache;
+            }
+        }
         TileVec? playerPos = null;
         foreach (var (tileVec, boardObject) in boardState)
         {
@@ -149,10 +157,26 @@ public class StageManager : MonoBehaviour
                 break;
             }
         }
+        playerPosCache = playerPos;
+        return playerPos;
+    }
+    public void PlayerMove(TileDirection direction)
+    {
+        TileVec? playerPos = GetPlayerPos();
         if (playerPos is not null)
         {
             TileVec pos = (TileVec)playerPos;
-            if (IsWall(pos + (TileVec)direction)) return;
+            TileVec nextPlayerPos = pos - direction;
+            if (IsWall(nextPlayerPos)) return;
+            if (IsBlock(nextPlayerPos))
+            {
+                TileVec nextBlockPos = nextPlayerPos - direction;
+                if (IsWall(nextBlockPos)) return;
+                boardState.MoveObject(nextPlayerPos, nextBlockPos);
+            }
+            playerPosCache = nextPlayerPos;
+            boardState.MoveObject(pos, nextPlayerPos);
+            boardRenderer.UpdateStage(boardState);
         }
     }
 }
