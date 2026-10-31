@@ -5,7 +5,6 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    PlayerManager playerManager;
     [SerializeField] StageManager stageManager;
     void Start()
     {

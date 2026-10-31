@@ -7,13 +7,10 @@ public class StageManager : MonoBehaviour
 {
     int rows;
     int columns;
-    float tileSize;
-    Vector2 centerPosition;
     Dictionary<GameObject, Vector2Int> moveObjPositionOnStage = new();
     FloorLayer floorLayer;
     MutableBoardState boardState = new();
     Stack<BoardState> history = new();
-    PlayerManager playerManager;
     [SerializeField] TextAsset stageFile;
     [SerializeField] BoardRenderer boardRenderer;
     TileVec? playerPosCache;
@@ -66,22 +63,6 @@ public class StageManager : MonoBehaviour
         boardRenderer.columns = columns;
         boardRenderer.CreateStage(floorLayer, boardState);
     }
-    public PlayerManager GetPlayerManager()
-    {
-        return playerManager;
-    }
-    public Vector2 GetScreenPositionFromTileTable(Vector2Int position)
-    {
-        return new Vector2(position.x * tileSize - centerPosition.x, -position.y * tileSize + centerPosition.y);
-    }
-    public void SetObjPositionOnStage(GameObject obj, Vector2Int pos)
-    {
-        moveObjPositionOnStage[obj] = pos;
-    }
-    public Vector2Int GetObjPosition(GameObject obj)
-    {
-        return moveObjPositionOnStage[obj];
-    }
     public bool IsWall(TileVec position)
     {
         return floorLayer.GetTile(position) == FloorLayer.FloorLayerTile.WALL;
@@ -90,34 +71,6 @@ public class StageManager : MonoBehaviour
     {
         if (!boardState.HasObject(position)) return false;
         return boardState.GetObject(position).type == BoardObjectType.BLOCK;
-    }
-    public GameObject GetObjectByPosition(Vector2 position)
-    {
-        foreach (var item in moveObjPositionOnStage)
-        {
-            if (item.Value == position)
-            {
-                return item.Key;
-            }
-        }
-        return null;
-    }
-    public void UpdateObjectPosition(Vector2Int nowPosition, Vector2Int nextPosition, StageType stageType)
-    {
-        boardState.MoveObject(
-            TileVecHelper.vector2IntToTileVec(nowPosition),
-            TileVecHelper.vector2IntToTileVec(nextPosition)
-            );
-        GameObject targetBlock = GetObjectByPosition(nowPosition);
-        targetBlock.transform.position = GetScreenPositionFromTileTable(nextPosition);
-
-        moveObjPositionOnStage[targetBlock] = nextPosition;
-    }
-
-    public void UpdateStageTableForPlayer(Vector2Int nowPosition, Vector2Int nextPosition)
-    {
-        boardState.RemoveObject(TileVecHelper.vector2IntToTileVec(nowPosition), out _);
-        boardState.SetObject(new BoardObject(BoardObjectType.PLAYER), TileVecHelper.vector2IntToTileVec(nextPosition));
     }
     public bool IsAllClear()
     {
