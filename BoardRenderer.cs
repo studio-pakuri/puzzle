@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BoardRenderer: MonoBehaviour
+public class BoardRenderer : MonoBehaviour
 {
     public int rows;
     public int columns;
@@ -27,7 +27,8 @@ public class BoardRenderer: MonoBehaviour
                 TileVec tileVec = new(y, x);
                 Vector2 position = GetScreenPositionFromTileTable(tileVec);
                 FloorLayer.FloorLayerTile? tile = floorLayer.GetTile(tileVec);
-                if (tile is not null){
+                if (tile is not null)
+                {
                     GameObject groundObj = Instantiate(prefabs[tile switch
                     {
                         FloorLayer.FloorLayerTile.WALL => (int)StageManager.StageType.WALL,
@@ -39,7 +40,7 @@ public class BoardRenderer: MonoBehaviour
                 if (boardView.HasObject(tileVec))
                 {
                     BoardObjectType type = boardView.GetObject(tileVec).type;
-                    if (type == BoardObjectType.BLOCK)
+                    if (type == BoardObjectTypes.BLOCK)
                     {
                         GameObject block = Instantiate(prefabs[3]);
                         blocks.Add(block);
@@ -56,15 +57,14 @@ public class BoardRenderer: MonoBehaviour
         int i = 0;
         foreach (var (tileVec, boardObject) in boardView)
         {
-            switch (boardObject.type)
+            if (boardObject.type == BoardObjectTypes.PLAYER)
             {
-                case BoardObjectType.PLAYER:
-                    player.transform.position = GetScreenPositionFromTileTable(tileVec);
-                    break;
-                case BoardObjectType.BLOCK:
-                    blocks[i].transform.position = GetScreenPositionFromTileTable(tileVec);
-                    i++;
-                    break;
+                player.transform.position = GetScreenPositionFromTileTable(tileVec);
+            }
+            else if (boardObject.type == BoardObjectTypes.BLOCK)
+            {
+                blocks[i].transform.position = GetScreenPositionFromTileTable(tileVec);
+                i++;
             }
         }
     }

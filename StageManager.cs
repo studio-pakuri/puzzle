@@ -48,7 +48,7 @@ public class StageManager : MonoBehaviour
     public bool IsBlock(TileVec position)
     {
         if (!boardState.HasObject(position)) return false;
-        return boardState.GetObject(position).type == BoardObjectType.BLOCK;
+        return boardState.GetObject(position).type == BoardObjectTypes.BLOCK;
     }
     public bool IsAllClear()
     {
@@ -56,7 +56,7 @@ public class StageManager : MonoBehaviour
         int blockCount = 0;
         foreach (var (pos, boardObject) in boardState)
         {
-            if (boardObject.type == BoardObjectType.BLOCK)
+            if (boardObject.type == BoardObjectTypes.BLOCK)
             {
                 blockCount++;
                 if (floorLayer.GetTile(pos) == FloorLayer.FloorLayerTile.POINT)
@@ -76,13 +76,13 @@ public class StageManager : MonoBehaviour
             
             if (boardState.TryGetObject(cache, out BoardObject boardObject))
             {
-                if (boardObject.type == BoardObjectType.PLAYER) return cache;
+                if (boardObject.type == BoardObjectTypes.PLAYER) return cache;
             }
         }
         TileVec? playerPos = null;
         foreach (var (tileVec, boardObject) in boardState)
         {
-            if (boardObject.type == BoardObjectType.PLAYER)
+            if (boardObject.type == BoardObjectTypes.PLAYER)
             {
                 playerPos = tileVec;
                 break;
