@@ -14,7 +14,8 @@ public static class StageDecoder
         JsonArray tileArray = tileNode["array"].AsArray();
         if (tileArray.Count != sizeX * sizeY) throw new FormatException();
         int i = 0;
-        foreach (var node in tileArray){
+        foreach (var node in tileArray)
+        {
             int id = node.GetValue<int>();
             TileVec pos = new(i % sizeX, i / sizeX);
             tiles[pos] = (FloorLayer.FloorLayerTile)id;
@@ -26,21 +27,22 @@ public static class StageDecoder
             int x = node["x"].GetValue<int>();
             int y = node["y"].GetValue<int>();
             int id = node["type"].GetValue<int>();
-            TileVec pos = new(x, y);
+            TileVec pos = new(y, x);
             boardState.SetObject(new BoardObject((BoardObjectType)id), pos);
         }
 
-        return new Result(new FloorLayer(tiles), boardState);
+        return new Result(new FloorLayer(tiles), boardState, new TileVec(sizeX, sizeY));
     }
     public readonly struct Result
     {
         public readonly FloorLayer floorLayer;
         public readonly MutableBoardState boardState;
-
-        public Result(FloorLayer floorLayer, MutableBoardState boardState)
+        public readonly TileVec size;
+        public Result(FloorLayer floorLayer, MutableBoardState boardState, TileVec size)
         {
             this.floorLayer = floorLayer;
             this.boardState = boardState;
+            this.size = size;
         }
     }
 }

@@ -1,6 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
-using Unity.Burst.Intrinsics;
+using System.Text.Json.Nodes;
+using System.Text.Json;
 using UnityEngine;
 
 public class StageManager : MonoBehaviour
@@ -9,7 +9,7 @@ public class StageManager : MonoBehaviour
     int columns;
     Dictionary<GameObject, Vector2Int> moveObjPositionOnStage = new();
     FloorLayer floorLayer;
-    MutableBoardState boardState = new();
+    MutableBoardState boardState;
     Stack<BoardState> history = new();
     [SerializeField] TextAsset stageFile;
     [SerializeField] BoardRenderer boardRenderer;
@@ -26,35 +26,13 @@ public class StageManager : MonoBehaviour
 
     public void LoadStageData()
     {
-        string[] lines = stageFile.text.Split(new[] { '\n', '\r' });
-        rows = lines.Length;
-        columns = lines[0].Split(new[] { ',' }).Length;
-        Dictionary<TileVec, FloorLayer.FloorLayerTile> tiles = new();
-        for (int x = 0; x < rows; x++)
-        {
-            string[] values = lines[x].Split(new[] { ',' });
-            for (int y = 0; y < columns; y++)
-            {
-                StageType stageType = (StageType)int.Parse(values[y]);
-                TileVec pos = new TileVec(y, x);
-                tiles[pos] = stageType switch
-                {
-                    StageType.WALL => FloorLayer.FloorLayerTile.WALL,
-                    StageType.BLOCK_POINT => FloorLayer.FloorLayerTile.POINT,
-                    _ => FloorLayer.FloorLayerTile.FLOOR,
-                };
-                switch (stageType)
-                {
-                    case StageType.BLOCK:
-                        boardState.SetObject(new BoardObject(BoardObjectType.BLOCK), pos);
-                        break;
-                    case StageType.PLAYER:
-                        boardState.SetObject(new BoardObject(BoardObjectType.PLAYER), pos);
-                        break;
-                }
-            }
-        }
-        floorLayer = new FloorLayer(tiles);
+        byte[] bytes = stageFile.bytes;
+        Utf8JsonReader reader = new(new System.ReadOnlySpan<byte>(bytes));
+        StageDecoder.Result result = StageDecoder.Decode(JsonNode.Parse(ref reader).AsObject());
+        floorLayer = result.floorLayer;
+        boardState = result.boardState;
+        rows = result.size.x;
+        columns = result.size.y;
     }
 
     public void CreateStage()
