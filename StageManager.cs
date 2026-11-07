@@ -31,8 +31,8 @@ public class StageManager : MonoBehaviour
         StageDecoder.Result result = StageDecoder.Decode(JsonNode.Parse(ref reader).AsObject());
         floorLayer = result.floorLayer;
         boardState = result.boardState;
-        rows = result.size.x;
-        columns = result.size.y;
+        rows = result.size.y;
+        columns = result.size.x;
     }
 
     public void CreateStage()

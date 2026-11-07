@@ -27,7 +27,7 @@ public static class StageDecoder
             int x = node["x"].GetValue<int>();
             int y = node["y"].GetValue<int>();
             int id = node["type"].GetValue<int>();
-            TileVec pos = new(y, x);
+            TileVec pos = new(x, y);
             boardState.SetObject(new BoardObject((BoardObjectType)id), pos);
         }
 
