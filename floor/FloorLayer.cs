@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class FloorLayer : IEnumerable<KeyValuePair<TileVec, FloorLayer.FloorLayerTile>>
+public class FloorLayer : IFloorView
 {
     readonly Dictionary<TileVec, FloorLayerTile> tiles;
     readonly HashSet<TileVec> points;
@@ -19,7 +19,7 @@ public class FloorLayer : IEnumerable<KeyValuePair<TileVec, FloorLayer.FloorLaye
         }
     }
 
-    public IEnumerable<TileVec> GetPoints() => new Points(this);
+    public IEnumerable<TileVec> Points => new PointsImpl(this);
 
     public IEnumerator<KeyValuePair<TileVec, FloorLayerTile>> GetEnumerator() => tiles.GetEnumerator();
 
@@ -39,10 +39,10 @@ public class FloorLayer : IEnumerable<KeyValuePair<TileVec, FloorLayer.FloorLaye
         return GetEnumerator();
     }
 
-    readonly struct Points : IEnumerable<TileVec>
+    readonly struct PointsImpl : IEnumerable<TileVec>
     {
         readonly FloorLayer parent;
-        public Points(FloorLayer parent)
+        public PointsImpl(FloorLayer parent)
         {
             this.parent = parent;
         }
@@ -52,13 +52,6 @@ public class FloorLayer : IEnumerable<KeyValuePair<TileVec, FloorLayer.FloorLaye
         {
             return GetEnumerator();
         }
-    }
-
-    public enum FloorLayerTile
-    {
-        WALL,
-        FLOOR,
-        POINT
     }
     
 }

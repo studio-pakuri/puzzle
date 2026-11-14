@@ -43,7 +43,7 @@ public class StageManager : MonoBehaviour
     }
     public bool IsWall(TileVec position)
     {
-        return floorLayer.GetTile(position) == FloorLayer.FloorLayerTile.WALL;
+        return floorLayer.GetTile(position) == FloorLayerTile.WALL;
     }
     public bool IsBlock(TileVec position)
     {
@@ -59,7 +59,7 @@ public class StageManager : MonoBehaviour
             if (boardObject.type == BoardObjectTypes.BLOCK)
             {
                 blockCount++;
-                if (floorLayer.GetTile(pos) == FloorLayer.FloorLayerTile.POINT)
+                if (floorLayer.GetTile(pos) == FloorLayerTile.POINT)
                 {
                     clearCount++;
                 }

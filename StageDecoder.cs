@@ -5,7 +5,7 @@ public static class StageDecoder
 {
     public static Result Decode(JsonObject jsonObject)
     {
-        Dictionary<TileVec, FloorLayer.FloorLayerTile> tiles = new();
+        Dictionary<TileVec, FloorLayerTile> tiles = new();
         MutableBoardState boardState = new();
         JsonObject tileNode = jsonObject["tiles"].AsObject();
         JsonArray boardStateNode = jsonObject["objects"].AsArray();
@@ -18,7 +18,7 @@ public static class StageDecoder
         {
             int id = node.GetValue<int>();
             TileVec pos = new(i % sizeX, i / sizeX);
-            tiles[pos] = (FloorLayer.FloorLayerTile)id;
+            tiles[pos] = (FloorLayerTile)id;
             i++;
         }
 
