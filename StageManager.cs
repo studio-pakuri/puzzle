@@ -96,7 +96,7 @@ public class StageManager : MonoBehaviour
         if (history.TryPop(out BoardState result))
         {
             boardState.Overwrite(result);
-            boardRenderer.UpdateStage(boardState);
+            boardRenderer.UpdateStage(floorLayer, boardState);
         }
     }
     public bool PlayerMove(TileDirection direction)
@@ -116,7 +116,7 @@ public class StageManager : MonoBehaviour
             }
             playerPosCache = nextPlayerPos;
             boardState.MoveObject(pos, nextPlayerPos);
-            boardRenderer.UpdateStage(boardState);
+            boardRenderer.UpdateStage(floorLayer, boardState);
             history.Push(memento);
             return true;
         }
