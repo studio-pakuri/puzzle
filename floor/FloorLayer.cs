@@ -19,7 +19,7 @@ public class FloorLayer : IFloorView
         }
     }
 
-    public IEnumerable<TileVec> Points => new PointsImpl(this);
+    public IEnumerable<TileVec> Points => points;
 
     public IEnumerator<KeyValuePair<TileVec, FloorLayerTile>> GetEnumerator() => tiles.GetEnumerator();
 
@@ -37,21 +37,6 @@ public class FloorLayer : IFloorView
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();
-    }
-
-    readonly struct PointsImpl : IEnumerable<TileVec>
-    {
-        readonly FloorLayer parent;
-        public PointsImpl(FloorLayer parent)
-        {
-            this.parent = parent;
-        }
-        public IEnumerator<TileVec> GetEnumerator() => parent.points.GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
     }
     
 }

@@ -20,25 +20,19 @@ public class BoardRenderer : MonoBehaviour
     public IEnumerable<TileVec> Difference(IFloorView floorLayer)
     {
         IFloorView view = new DictionaryFloorViewWrapper(past);
-        return floorLayer.Points.Concat(view.Points)
+        return Enumerable.Union(floorLayer.Select(pair => pair.Key), view.Select(pair => pair.Key))
         .Where(vec => floorLayer.GetTile(vec) != view.GetTile(vec));
     }
 
     public void CreateStage(IFloorView floorLayer, IBoardView boardView)
     {
         tileSize = prefabs[0].GetComponent<SpriteRenderer>().bounds.size.x;
-        past.Clear();
-        foreach (var (tileVec, tile) in floorLayer)
-        {
-            past[tileVec] = tile;
-        }
         player = Instantiate(prefabs[4]);
         UpdateStage(floorLayer, boardView);
     }
 
     public void UpdateStage(IFloorView floorLayer, IBoardView boardView)
     {
-        print(Difference(floorLayer).ToArray());
         foreach (TileVec tileVec in Difference(floorLayer))
         {
             // 座標の位置にタイルを配置
@@ -58,6 +52,11 @@ public class BoardRenderer : MonoBehaviour
             {
                 tileObjects.Remove(tileVec);
             }
+        }
+        past.Clear();
+        foreach (var (tileVec, tile) in floorLayer)
+        {
+            past[tileVec] = tile;
         }
         int blockIndex = 0;
         foreach (var (tileVec, boardObject) in boardView)

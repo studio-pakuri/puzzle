@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 public readonly struct DictionaryFloorViewWrapper : IFloorView
 {
@@ -10,7 +11,7 @@ public readonly struct DictionaryFloorViewWrapper : IFloorView
     }
     public IEnumerator<KeyValuePair<TileVec, FloorLayerTile>> GetEnumerator() => dictionary.GetEnumerator();
 
-    public IEnumerable<TileVec> Points => dictionary.Keys;
+    public IEnumerable<TileVec> Points => dictionary.Where(pair => pair.Value == FloorLayerTile.POINT).Select(pair => pair.Key);
 
     public FloorLayerTile? GetTile(TileVec pos)
     {
