@@ -6,16 +6,12 @@ public class BoardRenderer : MonoBehaviour
 {
     public int rows;
     public int columns;
-    float tileSize;
+    public TileVecConverter tileVecConverter;
     List<GameObject> blocks = new();
     GameObject player;
     [SerializeField] GameObject[] prefabs;
     readonly Dictionary<TileVec, FloorLayerTile> past = new();
     readonly Dictionary<TileVec, GameObject> tileObjects = new();
-    public Vector2 GetScreenPositionFromTileTable(TileVec position)
-    {
-        return new Vector2(position.x * tileSize, -position.y * tileSize);
-    }
 
     public IEnumerable<TileVec> Difference(IFloorView floorLayer)
     {
@@ -26,7 +22,7 @@ public class BoardRenderer : MonoBehaviour
 
     public void CreateStage(IFloorView floorLayer, IBoardView boardView)
     {
-        tileSize = prefabs[0].GetComponent<SpriteRenderer>().bounds.size.x;
+        tileVecConverter = new(prefabs[0].GetComponent<SpriteRenderer>().bounds.size.x);
         player = Instantiate(prefabs[4]);
         UpdateStage(floorLayer, boardView);
     }
@@ -36,7 +32,7 @@ public class BoardRenderer : MonoBehaviour
         foreach (TileVec tileVec in Difference(floorLayer))
         {
             // 座標の位置にタイルを配置
-            Vector2 position = GetScreenPositionFromTileTable(tileVec);
+            Vector2 position = tileVecConverter.ScreenPositionFromTileVec(tileVec);
             if (tileObjects.TryGetValue(tileVec, out GameObject tileObject))
             {
                 Destroy(tileObject);
@@ -61,10 +57,11 @@ public class BoardRenderer : MonoBehaviour
         int blockIndex = 0;
         foreach (var (tileVec, boardObject) in boardView)
         {
+            // プレイヤーオブジェクトが存在しない時への対応が必要
             if (boardObject.type == BoardObjectTypes.PLAYER)
             {
                 // プレイヤーオブジェクトを必要な位置に移動
-                player.transform.position = GetScreenPositionFromTileTable(tileVec);
+                player.transform.position = tileVecConverter.ScreenPositionFromTileVec(tileVec);
             }
             else if (boardObject.type == BoardObjectTypes.BLOCK)
             {
@@ -75,7 +72,7 @@ public class BoardRenderer : MonoBehaviour
                     blocks.Add(gameObject);
                 }
                 blocks[blockIndex].SetActive(true);
-                blocks[blockIndex].transform.position = GetScreenPositionFromTileTable(tileVec);
+                blocks[blockIndex].transform.position = tileVecConverter.ScreenPositionFromTileVec(tileVec);
                 blockIndex++;
             }
         }
