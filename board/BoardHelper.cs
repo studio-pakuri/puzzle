@@ -14,4 +14,14 @@ public static class BoardHelper
             return false;
         }
     }
+    public static bool MoveObject(this IWritableBoardView boardView, TileVec from, TileVec to)
+    {
+        if (boardView.HasObject(to)) return false;
+        if (boardView.RemoveObject(from, out BoardObject boardObject))
+        {
+            boardView.SetObject(boardObject, to);
+            return true;
+        }
+        return false;
+    }
 }

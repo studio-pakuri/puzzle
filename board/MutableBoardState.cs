@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 
-public class MutableBoardState: IBoardView
+public class MutableBoardState: IWritableBoardView
 {
     readonly Dictionary<TileVec, BoardObject> objects;
 
@@ -25,17 +25,6 @@ public class MutableBoardState: IBoardView
     }
 
     public bool RemoveObject(TileVec pos, out BoardObject boardObject) => objects.Remove(pos, out boardObject);
-
-    public bool MoveObject(TileVec from, TileVec to)
-    {
-        if (objects.ContainsKey(to)) return false;
-        if (objects.Remove(from, out BoardObject boardObject))
-        {
-            objects[to] = boardObject;
-            return true;
-        }
-        return false;
-    }
 
     public void Clear()
     {
